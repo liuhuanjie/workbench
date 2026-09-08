@@ -202,7 +202,7 @@ func (h *handlers) sourceRun(c *gin.Context) {
 		fail(c, errInvalidParam)
 		return
 	}
-	s, found := scraper.Get(req.SourceKey)
+	s, found := scraper.Lookup(req.SourceKey)
 	if !found {
 		c.JSON(http.StatusBadRequest, gin.H{"code": 1, "msg": "未知数据源"})
 		return

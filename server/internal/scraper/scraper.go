@@ -36,8 +36,8 @@ func Register(s Scraper) {
 	registry[s.Key()] = s
 }
 
-// Get 按 key 获取数据源
-func Get(key string) (Scraper, bool) {
+// Lookup 按 key 获取数据源（避免与 httpclient.go 的 HTTP Get 重名）
+func Lookup(key string) (Scraper, bool) {
 	mu.Lock()
 	defer mu.Unlock()
 	s, ok := registry[key]
