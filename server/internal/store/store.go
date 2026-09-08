@@ -4,6 +4,9 @@ import (
 	"database/sql"
 	"os"
 	"path/filepath"
+
+	// 注册纯 Go SQLite 驱动（sql.Open("sqlite", ...) 依赖此副作用导入）
+	_ "modernc.org/sqlite"
 )
 
 // Store SQLite 数据访问层，所有 SQL 集中于此
