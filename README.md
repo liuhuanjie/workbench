@@ -81,16 +81,40 @@ workbench/
 dnf install -y dnf-plugin-releasever-adapter || true
 dnf install -y docker docker-compose-plugin
 systemctl enable --now docker
-
-# 配置镜像加速（可选，加速拉取基础镜像）
-mkdir -p /etc/docker
-cat > /etc/docker/daemon.json <<'EOF'
-{ "registry-mirrors": ["https://docker.mirrors.sjtug.sjtu.edu.cn"] }
-EOF
-systemctl restart docker
 ```
 
 > Ubuntu 系统把 `dnf` 换成 `apt`，安装 `docker.io docker-compose-v2`。
+>
+> **Alibaba Cloud Linux 3 注意**：自带源没有 `docker-compose-plugin`，会报 `No match for argument`。需加装 docker-ce 源安装完整套件：
+>
+> ```bash
+> dnf install -y dnf-utils
+> dnf config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+> sed -i 's/\$releasever/8/g' /etc/yum.repos.d/docker-ce.repo
+> dnf remove -y docker
+> dnf install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+> systemctl enable --now docker
+> ```
+
+### 2. 配置镜像加速（国内服务器必配）
+
+不配置会报 `registry-1.docker.io ... connection refused`（Docker Hub 在国内无法直连）。
+
+获取专属加速地址：阿里云控制台 → 搜索「容器镜像服务」→ 左侧「镜像加速器」，得到形如 `https://xxxxxxxx.mirror.aliyuncs.com` 的地址（个人版免费），然后：
+
+```bash
+mkdir -p /etc/docker
+cat > /etc/docker/daemon.json <<'EOF'
+{ "registry-mirrors": ["https://fftzuerq.mirror.aliyuncs.com"] }
+EOF
+systemctl daemon-reload
+systemctl restart docker
+
+# 验证：能拉取成功即配置生效
+docker pull alpine:3.20
+```
+
+兜底方案：若加速器不可用，在任何能访问 Docker Hub 的机器上 `docker pull` 四个基础镜像（alpine:3.20、golang:1.22-alpine、node:20-alpine、nginx:1.27-alpine）后 `docker save` 打包传到服务器 `docker load`。
 
 ### 2. 上传项目
 
@@ -123,6 +147,45 @@ docker compose up -d --build
 ```bash
 docker compose build 2>&1 | tail -20
 ```
+
+> **国内服务器拉取基础镜像失败时**（`registry-1.docker.io ... connection refused/timeout`，Docker Hub 无法直连且阿里云个人加速器已不代理官方镜像），改用下方的 **ACR 自动构建部署**，服务器不再需要 build。
+
+### 4B. 替代方案：GitHub Actions 自动构建 + ACR 拉取（国内服务器推荐）
+
+服务器不在本地构建，而是由 GitHub Actions 在海外构建并推送到**阿里云容器镜像服务（ACR 个人版，免费）**，服务器直接从 ACR 拉取镜像（国内访问快且稳定）。
+
+**一次性配置：**
+
+1. **ACR 侧**：阿里云控制台 → 容器镜像服务 → 个人版实例 →
+   - 创建命名空间（如 `lujiamin`）
+   - 在该命名空间下创建两个镜像仓库：`workbench-app`、`workbench-web`（代码源选"本地仓库"，可将仓库设为"公开"免去服务器 docker login）
+   - 「访问凭证」→ 设置固定密码
+2. **GitHub 侧**：仓库 → Settings → Secrets and variables → Actions → 添加 4 个 Secrets：
+
+   | Secret | 值 |
+   |--------|-----|
+   | `ACR_REGISTRY` | `registry.cn-<地域>.aliyuncs.com`（按你创建实例的地域） |
+   | `ACR_NAMESPACE` | 你的命名空间 |
+   | `ACR_USERNAME` | 访问凭证用户名（阿里云账号全名） |
+   | `ACR_PASSWORD` | 访问凭证固定密码 |
+
+3. 推送代码到 `main` 分支即自动触发构建（或到 Actions 页面手动 Run workflow），完成后 ACR 仓库中会出现 `latest` 镜像
+
+**服务器部署（不执行 --build）：**
+
+```bash
+cd ~/workbench && git pull
+# .env 末尾追加两行镜像地址（替换 <地域> 与 <命名空间>）
+cat >> .env <<'EOF'
+WEB_IMAGE=registry.cn-hangzhou.aliyuncs.com/<命名空间>/workbench-web:latest
+APP_IMAGE=registry.cn-hangzhou.aliyuncs.com/<命名空间>/workbench-app:latest
+EOF
+docker compose up -d        # 自动从 ACR 拉取并启动
+```
+
+**后续升级**：本地改代码 → push 到 GitHub → Actions 自动构建新镜像 → 服务器 `git pull && docker compose pull && docker compose up -d`。
+
+> 若 ACR 仓库设为私有，先在服务器执行一次 `docker login --username=<用户名> registry.cn-<地域>.aliyuncs.com`。
 
 ### 5. 获取初始密码
 

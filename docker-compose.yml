@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.web
-    image: workbench-web:latest
+    image: ${WEB_IMAGE:-workbench-web:latest}
     ports:
       - "80:80"
     depends_on:
@@ -18,7 +18,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.server
-    image: workbench-app:latest
+    image: ${APP_IMAGE:-workbench-app:latest}
     env_file: .env
     volumes:
       - ./data:/app/data
