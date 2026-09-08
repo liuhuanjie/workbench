@@ -1,0 +1,178 @@
+/* 蓝绿清新风格基础样式（技术方案 5.2） */
+
+:root {
+  --primary: #14b8a6;
+  --primary-hover: #0d9488;
+  --accent: #38bdf8;
+  --bg: #f0fdfa;
+  --text-main: #134e4a;
+  --text-sub: #64748b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text-main);
+  font-family: system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+
+/* ---------- 整体布局 ---------- */
+
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sider {
+  width: 220px;
+  flex-shrink: 0;
+  background: #fff;
+  border-right: 1px solid #e6fffa;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 18px 16px;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--primary-hover);
+}
+
+.sider nav {
+  flex: 1;
+  padding: 8px 12px;
+  overflow-y: auto;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
+  margin-bottom: 4px;
+  border-radius: 12px;
+  color: var(--text-main);
+  text-decoration: none;
+  font-size: 14.5px;
+  transition: background 0.15s;
+}
+
+.menu-item:hover {
+  background: #f0fdfa;
+}
+
+.menu-item.active {
+  background: #f0fdfa;
+  color: var(--primary-hover);
+  font-weight: 600;
+  box-shadow: inset 3px 0 0 var(--primary);
+}
+
+.version {
+  padding: 14px 18px;
+  font-size: 12px;
+  color: var(--text-sub);
+}
+
+.content {
+  flex: 1;
+  padding: 24px 28px;
+  min-width: 0;
+}
+
+/* ---------- 页面通用 ---------- */
+
+.page-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+/* 卡片列表 */
+.item-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  box-shadow: 0 1px 3px rgba(19, 78, 74, 0.08);
+  position: relative;
+}
+
+.item-card.unread::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 12px;
+  bottom: 12px;
+  width: 4px;
+  border-radius: 2px;
+  background: var(--primary);
+}
+
+.item-card.unread .item-title {
+  font-weight: 700;
+}
+
+.item-title {
+  font-size: 15px;
+  margin: 0 0 6px;
+}
+
+.item-title a {
+  color: var(--text-main);
+  text-decoration: none;
+}
+
+.item-title a:hover {
+  color: var(--primary-hover);
+}
+
+.item-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  font-size: 12.5px;
+  color: var(--text-sub);
+}
+
+.item-summary {
+  font-size: 13px;
+  color: var(--text-sub);
+  margin: 6px 0 0;
+  line-height: 1.6;
+}
+
+.item-actions {
+  position: absolute;
+  right: 12px;
+  top: 10px;
+}
+
+.empty-tip {
+  text-align: center;
+  color: var(--text-sub);
+  padding: 48px 0;
+  font-size: 14px;
+}

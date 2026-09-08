@@ -1,0 +1,15 @@
+# Go 构建（纯 Go SQLite 驱动，免 CGO）
+FROM golang:1.22-alpine AS build
+WORKDIR /src
+COPY server/go.mod ./
+RUN go mod download
+COPY server/ .
+RUN go mod tidy && CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /app/server .
+
+# 运行镜像
+FROM alpine:3.20
+RUN apk add --no-cache tzdata ca-certificates sqlite wget
+WORKDIR /app
+COPY --from=build /app/server /app/server
+ENV TZ=Asia/Shanghai
+ENTRYPOINT ["/app/server"]
