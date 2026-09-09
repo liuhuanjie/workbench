@@ -252,19 +252,48 @@ docker compose up -d        # 服务 + 数据完整恢复
 
 > 镜像可随时从源码重建，**真正不可再生的只有 `data/` 目录**——极端情况下手握一个 `app.db` 即可恢复全部数据。建议每半年做一次迁移演练。
 
-## 数据源校准（上线后必做）
+## 数据源现状与校准
 
-框架已就绪，但以下数据源的 URL / 选择器 / 接口**必须实测后填写**才能出数据（当前显示"失败-待校准"）：
+### 已接入（实测可出数据）
+
+| 文件 | 数据源 | 说明 |
+|------|--------|------|
+| `server/internal/scraper/sources/gpai_house.go` | 公拍网住宅法拍（沪/京） | 服务端渲染，含起拍价/评估价/开拍时间；首次请求会下发挑战 Cookie，由客户端 Cookie Jar 自动处理 |
+| `server/internal/scraper/sources/jd_house.go` | 京东司法拍卖公告（沪/京） | 公开 JSON 接口 `paimai.jd.com/json/noticeJson`，无需登录；公告本身不含起拍价，价格字段留空 |
+
+### 待校准（当前显示"失败-待校准"）
 
 | 文件 | 数据源 | 校准内容 |
 |------|--------|---------|
 | `server/internal/scraper/sources/news_rss.go` | 行业媒体 RSS | 填入实际 RSS/Atom 订阅地址（填好即生效） |
 | `server/internal/scraper/sources/amc_news.go` | 5大AMC 官网 | 各官网新闻页 listURL 与 CSS 选择器 |
 | `server/internal/scraper/sources/cex_debt.go` | 产交所挂牌 | 各所债权栏目 URL 与选择器 |
-| `server/internal/scraper/sources/ali_house.go` | 阿里资产法拍 | 实测列表接口与反爬参数后实现解析 |
-| `server/internal/scraper/sources/jd_house.go` | 京东法拍 | 实测接口后实现解析 |
 
-校准方法：浏览器 F12 观察目标页面请求 → 填写配置 → `docker compose up -d --build` 重新构建 → 数据管理页点"立即抓取"验证。
+校准方法：浏览器 F12 观察目标页面请求 → 填写配置 → 推送代码由 CI 构建 → 服务器 `docker compose pull && up -d` → 数据管理页点"立即抓取"验证。
+
+### 阿里司法拍卖（sf.taobao.com）为什么没数据
+
+实测结论（2026-09-08，阿里云 ECS）：淘宝对**云主机 IP 段直接封禁**，所有列表路径返回
+`deny_pc.html?...|cloud_ip_bl`，换 UA、带 Cookie 均无效；H5 网关可达但需正确的 mtop 接口名与签名。
+
+沪京住宅法拍因此改由**公拍网**承担（上海地区标的最全）。若仍需阿里数据，二选一：
+
+1. 申请[淘宝开放平台](https://open.taobao.com) AppKey，改走官方 API `taobao.auction.gov.auctions.get`
+2. 使用住宅代理出口 IP，绕过云主机封禁
+
+## 反爬与抓取频率
+
+个人低频使用场景，原则是**宁可慢也不要被封 IP**：
+
+| 机制 | 实现位置 | 说明 |
+|------|---------|------|
+| 按域名限速 | `httpclient.go` | 同一域名两次请求最小间隔 3 秒 + 随机抖动，避免固定节拍被识别 |
+| 失败退避 | `httpclient.go` | 3s / 9s 指数退避，最多重试两次 |
+| 连续失败自动停用 | `scraper.go` | 同一源连续失败 3 次自动停用，需人工在数据管理页重新启用 |
+| 抓取频率 | `cronjob/cron.go` | 每日 2 次（8:00 / 18:00） |
+| 翻页上限 | 各 source 文件 | 公拍网单城市 3 页、京东 25 页，单日请求量控制在数十次量级 |
+
+如需进一步降频，修改 `cronjob/cron.go` 中的 cron 表达式即可（如改为每日 1 次：`0 8 * * *`）。
 
 ## 常见问题
 

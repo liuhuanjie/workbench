@@ -46,9 +46,15 @@ func (jdHouseScraper) Name() string     { return "京东法拍-住宅(沪/京)" 
 func (jdHouseScraper) Category() string { return "house" }
 
 // jdTargetCity 返回标题命中的目标城市（非沪京返回空）
+// 京东公告标题里"北京哈特公司""北京东路"这类公司名/路名极易误判，
+// 因此要求城市名后紧跟"市/区/县"，宁可漏抓也不混入噪声
 func jdTargetCity(title string) string {
 	for _, c := range jdCities {
-		if cityMatch(title, c) {
+		if !cityMatch(title, c) {
+			continue
+		}
+		if strings.Contains(title, c+"市") || strings.Contains(title, c+"区") ||
+			strings.Contains(title, c+"县") {
 			return c
 		}
 	}
