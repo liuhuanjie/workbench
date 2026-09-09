@@ -91,7 +91,7 @@ func parseGPaiList(body []byte, city string) ([]store.Item, error) {
 		if id == "" {
 			return
 		}
-		if !isResidential(title) || !cityMatch(title, city) {
+		if !isResidential(title) || !cityMatch(title, city) || !cityStrictMatch(title, city) {
 			return
 		}
 		status := strings.TrimSpace(sel.Find(".badge-icon, .status-badge").First().Text())

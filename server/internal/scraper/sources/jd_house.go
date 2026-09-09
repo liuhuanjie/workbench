@@ -50,11 +50,7 @@ func (jdHouseScraper) Category() string { return "house" }
 // 因此要求城市名后紧跟"市/区/县"，宁可漏抓也不混入噪声
 func jdTargetCity(title string) string {
 	for _, c := range jdCities {
-		if !cityMatch(title, c) {
-			continue
-		}
-		if strings.Contains(title, c+"市") || strings.Contains(title, c+"区") ||
-			strings.Contains(title, c+"县") {
+		if cityMatch(title, c) && cityStrictMatch(title, c) {
 			return c
 		}
 	}

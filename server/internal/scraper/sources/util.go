@@ -3,6 +3,7 @@ package sources
 // util.go 数据源共用工具：新闻分类 / 时间解析 / 金额解析
 
 import (
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -65,6 +66,17 @@ func cityMatch(title, city string) bool {
 			return false
 		}
 	}
+}
+
+// cityStrictMatch 严格城市判定：城市名 + 可选"市" + 0~3 个汉字 + "区/县"
+// 例："上海市静安区…" ✓、"上海宝山区…" ✓、"北京第二机床厂…" ✗（公司名，实为河北香河）
+// 仅用于法拍住宅源：宁可漏抓也不混入外地噪声
+func cityStrictMatch(title, city string) bool {
+	re, err := regexp.Compile(regexp.QuoteMeta(city) + `市?\p{Han}{0,3}[区县]`)
+	if err != nil {
+		return false
+	}
+	return re.MatchString(title)
 }
 
 var timeLayouts = []string{
