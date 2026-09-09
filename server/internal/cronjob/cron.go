@@ -17,8 +17,9 @@ import (
 func Start(st *store.Store) {
 	c := cron.New(cron.WithLocation(time.Local))
 
-	// 每日 3 批错峰全量抓取
-	c.AddFunc("0 8,12,18 * * *", func() {
+	// 每日 2 批全量抓取（8:00 / 18:00）
+	// 频次说明：个人使用优先保证 IP 安全，单日请求量控制在数十次量级
+	c.AddFunc("0 8,18 * * *", func() {
 		log.Println("[cron] 开始全量抓取")
 		scraper.RunAll(st)
 	})

@@ -1,16 +1,18 @@
 package sources
 
-// ali_house.go 阿里资产-法拍住宅（上海/北京）抓取器骨架
+// ali_house.go 阿里资产-法拍住宅（上海/北京）抓取器（暂时停用）
 //
 // 目标入口: https://sf.taobao.com （阿里资产/司法拍卖-住宅）
 //
-// TODO(上线校准): 阿里资产列表为动态接口且带反爬（cookie/加密参数），
-// 需上线实测接口地址、参数与所需请求头后实现本抓取器：
-//  1. 浏览器 F12 抓取列表请求（JSON 接口）
-//  2. 提取 itemId、标题、区域、面积、起拍价、评估价、开拍时间、状态
-//  3. 过滤城市（上海/北京）与住宅类目
-//  4. 用 scraper.Get 携带必要头请求接口并解析
-// 当前返回待校准错误，源状态页会显示"fail-待校准"。
+// 2026-09-08 实测结论（阿里云 ECS 47.116.202.33）：
+//   - sf.taobao.com 首页可访问，但所有列表路径（item_list.htm / list/*.htm）均返回
+//     deny_pc.html?...|cloud_ip_bl，即淘宝对云主机 IP 段直接封禁
+//   - 带 Cookie、换 UA 均无效；H5 网关 h5api.m.taobao.com 可达但需正确的 mtop 接口名与签名
+//   - 因此服务器侧无法直接抓取，沪京住宅法拍改由 gpai_house（公拍网）承担
+//
+// 若后续要启用阿里源，可选路径：
+//  1. 申请淘宝开放平台 AppKey，改走官方 API（taobao.auction.gov.auctions.get）
+//  2. 使用住宅代理出口 IP，绕过云主机封禁
 
 import (
 	"context"
@@ -27,7 +29,7 @@ func (aliHouseScraper) Name() string     { return "阿里资产-法拍住宅(沪
 func (aliHouseScraper) Category() string { return "house" }
 
 func (aliHouseScraper) Fetch(_ context.Context) ([]store.Item, error) {
-	return nil, errors.New("数据源待校准：阿里资产需上线实测接口与反爬参数后启用")
+	return nil, errors.New("阿里云主机 IP 被淘宝司法拍卖封禁（cloud_ip_bl），暂不可用；沪京住宅数据已由公拍网源提供")
 }
 
 func init() { scraper.Register(aliHouseScraper{}) }
