@@ -1,6 +1,9 @@
 <template>
   <div>
-    <h2 class="page-title"><Icon icon="fluent-emoji:glowing-star" width="26" /> 我的收藏</h2>
+    <h2 class="page-title">
+      <n-icon :component="BookmarkOutline" :size="18" />
+      我的收藏
+    </h2>
 
     <div class="filter-bar">
       <n-radio-group v-model:value="type" size="small" @update:value="reload">
@@ -17,7 +20,7 @@
         <n-popconfirm @positive-click="removeFav(f)">
           <template #trigger>
             <n-button text>
-              <Icon icon="fluent-emoji:cross-mark" width="18" />
+              <n-icon :component="CloseOutline" :size="16" />
             </n-button>
           </template>
           确认取消收藏？
@@ -28,6 +31,7 @@
       </p>
       <div class="item-meta">
         <n-tag size="tiny" :bordered="false" type="info">{{ typeName(f.item_type) }}</n-tag>
+        <span v-if="f.source_key" class="source-tag">{{ sourceLabel(f.source_key) }}</span>
         <span v-if="f.extra">{{ f.extra }}</span>
         <span>收藏于 {{ f.created_at }}</span>
       </div>
@@ -36,11 +40,12 @@
 
     <n-empty v-if="!loading && !list.length" description="暂无收藏" style="padding: 48px 0" />
 
-    <div style="display: flex; justify-content: center; margin-top: 16px">
+    <div style="display: flex; justify-content: flex-end; margin-top: 10px">
       <n-pagination
         v-model:page="page"
         :page-size="pageSize"
         :item-count="total"
+        size="small"
         @update:page="load"
       />
     </div>
@@ -49,9 +54,10 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { Icon } from '@iconify/vue'
 import { useMessage } from 'naive-ui'
 import { api } from '../api'
+import { sourceLabel } from '../sources'
+import { BookmarkOutline, CloseOutline } from '../icons'
 
 const message = useMessage()
 const list = ref([])

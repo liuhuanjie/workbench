@@ -1,12 +1,14 @@
-/* 蓝绿清新风格基础样式（技术方案 5.2） */
+/* 专业紧凑风格基础样式 */
 
 :root {
-  --primary: #14b8a6;
-  --primary-hover: #0d9488;
-  --accent: #38bdf8;
-  --bg: #f0fdfa;
-  --text-main: #134e4a;
-  --text-sub: #64748b;
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --accent: #64748b;
+  --bg: #f5f6f8;
+  --panel: #ffffff;
+  --border: #e5e7eb;
+  --text-main: #1f2937;
+  --text-sub: #6b7280;
 }
 
 * {
@@ -18,6 +20,7 @@ body {
   background: var(--bg);
   color: var(--text-main);
   font-family: system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 13px;
 }
 
 /* ---------- 整体布局 ---------- */
@@ -28,10 +31,10 @@ body {
 }
 
 .sider {
-  width: 220px;
+  width: 188px;
   flex-shrink: 0;
-  background: #fff;
-  border-right: 1px solid #e6fffa;
+  background: var(--panel);
+  border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   position: sticky;
@@ -42,81 +45,85 @@ body {
 .logo {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 20px 18px 16px;
-  font-size: 17px;
-  font-weight: 700;
-  color: var(--primary-hover);
+  gap: 8px;
+  padding: 14px 16px 12px;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--primary);
+  border-bottom: 1px solid var(--border);
 }
 
 .sider nav {
   flex: 1;
-  padding: 8px 12px;
+  padding: 6px 8px;
   overflow-y: auto;
 }
 
 .menu-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 11px 12px;
-  margin-bottom: 4px;
-  border-radius: 12px;
+  gap: 8px;
+  padding: 7px 10px;
+  margin-bottom: 1px;
+  border-radius: 4px;
   color: var(--text-main);
   text-decoration: none;
-  font-size: 14.5px;
-  transition: background 0.15s;
+  font-size: 13px;
+  transition: background 0.12s;
 }
 
 .menu-item:hover {
-  background: #f0fdfa;
+  background: #f1f5f9;
 }
 
 .menu-item.active {
-  background: #f0fdfa;
+  background: #eff6ff;
   color: var(--primary-hover);
   font-weight: 600;
-  box-shadow: inset 3px 0 0 var(--primary);
+  box-shadow: inset 2px 0 0 var(--primary);
 }
 
 .version {
-  padding: 14px 18px;
-  font-size: 12px;
-  color: var(--text-sub);
+  padding: 10px 16px;
+  font-size: 11px;
+  color: #9ca3af;
+  border-top: 1px solid var(--border);
 }
 
 .content {
   flex: 1;
-  padding: 24px 28px;
+  padding: 16px 20px;
   min-width: 0;
 }
 
 /* ---------- 页面通用 ---------- */
 
 .page-title {
-  font-size: 20px;
-  font-weight: 700;
-  margin: 0 0 16px;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 12px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
 }
 
 .filter-bar {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
 }
 
 /* 卡片列表 */
 .item-card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 14px 16px;
-  margin-bottom: 10px;
-  box-shadow: 0 1px 3px rgba(19, 78, 74, 0.08);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 9px 12px;
+  margin-bottom: 6px;
   position: relative;
 }
 
@@ -124,20 +131,21 @@ body {
   content: '';
   position: absolute;
   left: 0;
-  top: 12px;
-  bottom: 12px;
-  width: 4px;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
   border-radius: 2px;
   background: var(--primary);
 }
 
 .item-card.unread .item-title {
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .item-title {
-  font-size: 15px;
-  margin: 0 0 6px;
+  font-size: 13.5px;
+  margin: 0 0 4px;
+  line-height: 1.45;
 }
 
 .item-title a {
@@ -152,27 +160,41 @@ body {
 .item-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 14px;
-  font-size: 12.5px;
+  gap: 12px;
+  font-size: 12px;
   color: var(--text-sub);
 }
 
 .item-summary {
-  font-size: 13px;
+  font-size: 12.5px;
   color: var(--text-sub);
-  margin: 6px 0 0;
-  line-height: 1.6;
+  margin: 4px 0 0;
+  line-height: 1.55;
 }
 
 .item-actions {
   position: absolute;
-  right: 12px;
-  top: 10px;
+  right: 10px;
+  top: 8px;
 }
 
 .empty-tip {
   text-align: center;
   color: var(--text-sub);
-  padding: 48px 0;
-  font-size: 14px;
+  padding: 40px 0;
+  font-size: 13px;
+}
+
+/* 来源平台标签 */
+.source-tag {
+  display: inline-block;
+  padding: 0 6px;
+  height: 18px;
+  line-height: 18px;
+  border-radius: 3px;
+  background: #f1f5f9;
+  border: 1px solid var(--border);
+  color: #475569;
+  font-size: 11.5px;
+  white-space: nowrap;
 }

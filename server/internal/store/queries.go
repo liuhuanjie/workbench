@@ -312,7 +312,8 @@ type FavoriteRow struct {
 	CreatedAt string `json:"created_at"`
 	Title     string `json:"title"`
 	URL       string `json:"url"`
-	Extra     string `json:"extra"` // 类型相关的补充信息
+	SourceKey string `json:"source_key"` // 来源平台（前端展示抓取来源）
+	Extra     string `json:"extra"`      // 类型相关的补充信息
 }
 
 // ListFavorites 收藏列表（联查各表标题/链接）
@@ -351,20 +352,20 @@ func (s *Store) fillFavoriteDetail(ctx context.Context, r *FavoriteRow) {
 	switch r.ItemType {
 	case "news":
 		s.DB.QueryRowContext(ctx,
-			`SELECT title, url, org_name FROM news WHERE id=?`, r.ItemID).
-			Scan(&r.Title, &r.URL, &r.Extra)
+			`SELECT title, url, org_name, source_key FROM news WHERE id=?`, r.ItemID).
+			Scan(&r.Title, &r.URL, &r.Extra, &r.SourceKey)
 	case "debt":
 		var amt float64
 		if s.DB.QueryRowContext(ctx,
-			`SELECT title, url, amount_wan FROM debt_item WHERE id=?`, r.ItemID).
-			Scan(&r.Title, &r.URL, &amt) == nil {
+			`SELECT title, url, amount_wan, source_key FROM debt_item WHERE id=?`, r.ItemID).
+			Scan(&r.Title, &r.URL, &amt, &r.SourceKey) == nil {
 			r.Extra = fmt.Sprintf("%.0f 万元", amt)
 		}
 	case "house":
 		var price float64
 		if s.DB.QueryRowContext(ctx,
-			`SELECT title, url, start_price_wan FROM house_item WHERE id=?`, r.ItemID).
-			Scan(&r.Title, &r.URL, &price) == nil {
+			`SELECT title, url, start_price_wan, source_key FROM house_item WHERE id=?`, r.ItemID).
+			Scan(&r.Title, &r.URL, &price, &r.SourceKey) == nil {
 			r.Extra = fmt.Sprintf("起拍 %.0f 万元", price)
 		}
 	}

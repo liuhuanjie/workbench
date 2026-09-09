@@ -1,13 +1,16 @@
 <template>
   <div>
-    <h2 class="page-title"><Icon icon="fluent-emoji:card-file-box" width="26" /> 数据管理</h2>
+    <h2 class="page-title">
+      <n-icon :component="ServerOutline" :size="18" />
+      数据管理
+    </h2>
 
     <!-- 数据源健康状态 -->
     <div class="panel">
       <div class="panel-head">
         <h3>数据源状态</h3>
         <n-button size="small" quaternary @click="loadSources">
-          <template #icon><Icon icon="fluent-emoji:arrows-counterclockwise" width="16" /></template>
+          <template #icon><n-icon :component="RefreshOutline" :size="15" /></template>
           刷新
         </n-button>
       </div>
@@ -57,7 +60,7 @@
 
 <script setup>
 import { ref, h, onMounted } from 'vue'
-import { Icon } from '@iconify/vue'
+import { ServerOutline, RefreshOutline } from '../icons'
 import { NTag, NButton, NSwitch, useMessage } from 'naive-ui'
 import { api } from '../api'
 
@@ -208,28 +211,28 @@ onMounted(() => {
 <style scoped>
 .panel {
   background: #fff;
-  border-radius: 14px;
-  padding: 18px 22px;
-  margin-bottom: 16px;
-  box-shadow: 0 1px 3px rgba(19, 78, 74, 0.08);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
 }
 
 .panel-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .panel-head h3 {
   margin: 0;
-  font-size: 15px;
+  font-size: 13.5px;
 }
 
 .config-form {
   display: flex;
   flex-wrap: wrap;
-  gap: 22px;
+  gap: 20px;
   align-items: center;
 }
 
@@ -237,23 +240,24 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .migrate-tip {
-  margin-top: 14px;
-  font-size: 12.5px;
-  color: #64748b;
-  background: #f0fdfa;
-  border-radius: 8px;
-  padding: 10px 14px;
-  line-height: 1.8;
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--text-sub);
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 8px 12px;
+  line-height: 1.7;
 }
 
 .migrate-tip code {
-  background: #e6fffa;
-  padding: 1px 6px;
-  border-radius: 4px;
-  color: #0d9488;
+  background: #eef2f7;
+  padding: 1px 5px;
+  border-radius: 3px;
+  color: #334155;
 }
 </style>

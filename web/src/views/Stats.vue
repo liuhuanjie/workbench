@@ -1,31 +1,34 @@
 <template>
   <div>
-    <h2 class="page-title"><Icon icon="fluent-emoji:bar-chart" width="26" /> 数据统计</h2>
+    <h2 class="page-title">
+      <n-icon :component="StatsChartOutline" :size="18" />
+      数据统计
+    </h2>
 
     <div class="stat-cards">
       <div class="stat-card">
-        <Icon icon="fluent-emoji:star-struck" width="32" />
+        <n-icon :component="BookmarkOutline" :size="22" />
         <div>
           <div class="stat-num">{{ o?.favorite_total ?? '—' }}</div>
           <div class="stat-label">收藏总数</div>
         </div>
       </div>
       <div class="stat-card">
-        <Icon icon="fluent-emoji:newspaper" width="32" />
+        <n-icon :component="NewspaperOutline" :size="22" />
         <div>
           <div class="stat-num">{{ o?.news_unread ?? '—' }}</div>
           <div class="stat-label">新闻未读</div>
         </div>
       </div>
       <div class="stat-card">
-        <Icon icon="fluent-emoji:clipboard" width="32" />
+        <n-icon :component="ReceiptOutline" :size="22" />
         <div>
           <div class="stat-num">{{ o?.debt_unread ?? '—' }}</div>
           <div class="stat-label">债权未读</div>
         </div>
       </div>
       <div class="stat-card">
-        <Icon icon="fluent-emoji:houses" width="32" />
+        <n-icon :component="BusinessOutline" :size="22" />
         <div>
           <div class="stat-num">{{ o?.house_unread ?? '—' }}</div>
           <div class="stat-label">法拍未读</div>
@@ -38,14 +41,14 @@
       <svg viewBox="0 0 720 220" class="trend-svg">
         <!-- 网格线 -->
         <line v-for="gy in [40, 90, 140, 190]" :key="gy" :x1="40" :y1="gy" x2="700" :y2="gy"
-          stroke="#e6fffa" stroke-width="1" />
+          stroke="#e5e7eb" stroke-width="1" />
         <!-- 折线 -->
-        <polyline :points="linePoints" fill="none" stroke="#14b8a6" stroke-width="2.5"
+        <polyline :points="linePoints" fill="none" stroke="#2563eb" stroke-width="2"
           stroke-linejoin="round" stroke-linecap="round" />
         <!-- 数据点与标签 -->
         <g v-for="p in points" :key="p.label">
-          <circle :cx="p.x" :cy="p.y" r="4" fill="#fff" stroke="#14b8a6" stroke-width="2" />
-          <text :x="p.x" :y="p.y - 10" text-anchor="middle" font-size="12" fill="#0d9488">
+          <circle :cx="p.x" :cy="p.y" r="3.5" fill="#fff" stroke="#2563eb" stroke-width="2" />
+          <text :x="p.x" :y="p.y - 10" text-anchor="middle" font-size="12" fill="#1d4ed8">
             {{ p.v }}
           </text>
           <text :x="p.x" y="212" text-anchor="middle" font-size="11" fill="#64748b">
@@ -59,8 +62,14 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { Icon } from '@iconify/vue'
 import { api } from '../api'
+import {
+  StatsChartOutline,
+  BookmarkOutline,
+  NewspaperOutline,
+  ReceiptOutline,
+  BusinessOutline,
+} from '../icons'
 
 const o = ref(null)
 
@@ -94,44 +103,45 @@ const linePoints = computed(() => points.value.map((p) => `${p.x},${p.y}`).join(
 <style scoped>
 .stat-cards {
   display: flex;
-  gap: 16px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
 .stat-card {
   flex: 1;
-  min-width: 160px;
+  min-width: 150px;
   background: #fff;
-  border-radius: 14px;
-  padding: 20px 22px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 12px 14px;
   display: flex;
   align-items: center;
-  gap: 14px;
-  box-shadow: 0 1px 3px rgba(19, 78, 74, 0.08);
+  gap: 12px;
+  color: var(--primary);
 }
 
 .stat-num {
-  font-size: 26px;
-  font-weight: 700;
-  color: #0d9488;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-main);
 }
 
 .stat-label {
-  font-size: 13px;
-  color: #64748b;
+  font-size: 12px;
+  color: var(--text-sub);
 }
 
 .chart-card {
   background: #fff;
-  border-radius: 14px;
-  padding: 20px 24px;
-  margin-top: 16px;
-  box-shadow: 0 1px 3px rgba(19, 78, 74, 0.08);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 14px 16px;
+  margin-top: 10px;
 }
 
 .chart-card h3 {
-  margin: 0 0 12px;
-  font-size: 15px;
+  margin: 0 0 10px;
+  font-size: 13.5px;
 }
 
 .trend-svg {

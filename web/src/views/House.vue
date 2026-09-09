@@ -1,6 +1,9 @@
 <template>
   <div>
-    <h2 class="page-title"><Icon icon="fluent-emoji:houses" width="26" /> 每日住宅检索</h2>
+    <h2 class="page-title">
+      <n-icon :component="BusinessOutline" :size="18" />
+      每日住宅检索
+    </h2>
 
     <div class="filter-bar">
       <n-select
@@ -9,7 +12,7 @@
         placeholder="城市"
         clearable
         size="small"
-        style="width: 120px"
+        style="width: 110px"
         @update:value="reload"
       />
       <n-input
@@ -17,7 +20,7 @@
         placeholder="行政区"
         clearable
         size="small"
-        style="width: 120px"
+        style="width: 110px"
         @keyup.enter="reload"
       />
       <n-select
@@ -26,7 +29,7 @@
         placeholder="状态"
         clearable
         size="small"
-        style="width: 120px"
+        style="width: 110px"
         @update:value="reload"
       />
       <n-date-picker
@@ -34,7 +37,7 @@
         type="date"
         clearable
         size="small"
-        style="width: 140px"
+        style="width: 132px"
         value-format="yyyy-MM-dd"
         placeholder="开拍起"
       />
@@ -43,7 +46,7 @@
         type="date"
         clearable
         size="small"
-        style="width: 140px"
+        style="width: 132px"
         value-format="yyyy-MM-dd"
         placeholder="开拍止"
       />
@@ -52,43 +55,27 @@
         placeholder="关键词搜索"
         clearable
         size="small"
-        style="width: 170px"
+        style="width: 160px"
         @keyup.enter="reload"
       />
       <n-button type="primary" secondary size="small" @click="reload">搜索</n-button>
     </div>
 
-    <div v-for="h in list" :key="h.id" class="item-card" :class="{ unread: !h.is_read }">
-      <div class="item-actions">
-        <n-button text @click="toggleFav(h)">
-          <Icon
-            :icon="h.fav_id ? 'fluent-emoji:glowing-star' : 'fluent-emoji:star'"
-            width="20"
-          />
-        </n-button>
-      </div>
-      <p class="item-title">
-        <a :href="h.url" target="_blank" rel="noopener" @click="markRead(h)">{{ h.title }}</a>
-      </p>
-      <div class="item-meta">
-        <n-tag size="tiny" type="info" :bordered="false">{{ h.city }}</n-tag>
-        <span v-if="h.district">{{ h.district }}</span>
-        <span v-if="h.area_sqm">{{ h.area_sqm }} ㎡</span>
-        <span v-if="h.start_price_wan">起拍：{{ h.start_price_wan }} 万元</span>
-        <span v-if="h.eval_price_wan">评估：{{ h.eval_price_wan }} 万元</span>
-        <span v-if="h.court">{{ h.court }}</span>
-        <span v-if="h.auction_date">开拍：{{ h.auction_date }}</span>
-        <n-tag v-if="h.status" size="tiny" :bordered="false" type="warning">{{ h.status }}</n-tag>
-      </div>
-    </div>
+    <n-data-table
+      :columns="columns"
+      :data="list"
+      :loading="loading"
+      :bordered="false"
+      size="small"
+      :row-class-name="rowClass"
+    />
 
-    <n-empty v-if="!loading && !list.length" description="暂无数据" style="padding: 48px 0" />
-
-    <div style="display: flex; justify-content: center; margin-top: 16px">
+    <div style="display: flex; justify-content: flex-end; margin-top: 10px">
       <n-pagination
         v-model:page="page"
         :page-size="pageSize"
         :item-count="total"
+        size="small"
         @update:page="load"
       />
     </div>
@@ -96,10 +83,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { Icon } from '@iconify/vue'
+import { ref, onMounted, h } from 'vue'
+import { NButton, NTag } from 'naive-ui'
 import { useMessage } from 'naive-ui'
 import { api } from '../api'
+import { sourceLabel } from '../sources'
+import { BusinessOutline } from '../icons'
 
 const message = useMessage()
 const list = ref([])
@@ -124,6 +113,84 @@ const statusOptions = [
   { label: '拍卖中', value: '拍卖中' },
   { label: '已成交', value: '已成交' },
   { label: '流拍', value: '流拍' },
+]
+
+function rowClass(row) {
+  return row.is_read ? '' : 'row-unread'
+}
+
+function price(v) {
+  return v ? v.toLocaleString('zh-CN', { maximumFractionDigits: 1 }) : '—'
+}
+
+const columns = [
+  {
+    title: '',
+    key: 'fav',
+    width: 40,
+    render: (row) =>
+      h(
+        NButton,
+        {
+          text: true,
+          onClick: () => toggleFav(row),
+        },
+        { default: () => h('span', { style: 'font-size:14px' }, row.fav_id ? '★' : '☆') }
+      ),
+  },
+  {
+    title: '标的',
+    key: 'title',
+    minWidth: 320,
+    render: (row) =>
+      h('div', null, [
+        h(
+          'a',
+          {
+            href: row.url,
+            target: '_blank',
+            rel: 'noopener',
+            style: 'color:#1F2937;text-decoration:none',
+            onClick: () => markRead(row),
+          },
+          row.title
+        ),
+        h('div', { style: 'margin-top:2px' }, [
+          h('span', { class: 'source-tag' }, sourceLabel(row.source_key)),
+          row.court ? h('span', { style: 'margin-left:8px;color:#9CA3AF' }, row.court) : null,
+        ]),
+      ]),
+  },
+  {
+    title: '地区',
+    key: 'region',
+    width: 110,
+    render: (row) => [row.city, row.district].filter(Boolean).join(' · ') || '—',
+  },
+  {
+    title: '起拍价(万)',
+    key: 'start_price_wan',
+    width: 100,
+    align: 'right',
+    render: (row) => price(row.start_price_wan),
+  },
+  {
+    title: '评估价(万)',
+    key: 'eval_price_wan',
+    width: 100,
+    align: 'right',
+    render: (row) => price(row.eval_price_wan),
+  },
+  { title: '开拍时间', key: 'auction_date', width: 130, render: (row) => row.auction_date || '—' },
+  {
+    title: '状态',
+    key: 'status',
+    width: 90,
+    render: (row) =>
+      row.status
+        ? h(NTag, { size: 'small', bordered: false, type: 'info' }, { default: () => row.status })
+        : '—',
+  },
 ]
 
 async function load() {
@@ -160,14 +227,14 @@ async function markRead(h) {
   }
 }
 
-async function toggleFav(h) {
+async function toggleFav(row) {
   try {
-    if (h.fav_id) {
-      await api.favoriteRemove(h.fav_id)
-      h.fav_id = 0
+    if (row.fav_id) {
+      await api.favoriteRemove(row.fav_id)
+      row.fav_id = 0
       message.success('已取消收藏')
     } else {
-      await api.favoriteAdd('house', h.id, '')
+      await api.favoriteAdd('house', row.id, '')
       message.success('已收藏')
       load()
     }
@@ -178,3 +245,9 @@ async function toggleFav(h) {
 
 onMounted(load)
 </script>
+
+<style>
+.row-unread td {
+  font-weight: 600;
+}
+</style>

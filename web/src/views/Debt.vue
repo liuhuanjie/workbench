@@ -1,6 +1,9 @@
 <template>
   <div>
-    <h2 class="page-title"><Icon icon="fluent-emoji:clipboard" width="26" /> 每日债权检索</h2>
+    <h2 class="page-title">
+      <n-icon :component="ReceiptOutline" :size="18" />
+      每日债权检索
+    </h2>
 
     <div class="filter-bar">
       <n-select
@@ -9,7 +12,7 @@
         placeholder="来源"
         clearable
         size="small"
-        style="width: 180px"
+        style="width: 170px"
         @update:value="reload"
       />
       <n-input
@@ -17,7 +20,7 @@
         placeholder="地区"
         clearable
         size="small"
-        style="width: 130px"
+        style="width: 110px"
         @keyup.enter="reload"
       />
       <n-select
@@ -26,7 +29,7 @@
         placeholder="状态"
         clearable
         size="small"
-        style="width: 120px"
+        style="width: 110px"
         @update:value="reload"
       />
       <n-input
@@ -34,41 +37,27 @@
         placeholder="关键词搜索"
         clearable
         size="small"
-        style="width: 190px"
+        style="width: 170px"
         @keyup.enter="reload"
       />
       <n-button type="primary" secondary size="small" @click="reload">搜索</n-button>
     </div>
 
-    <div v-for="d in list" :key="d.id" class="item-card" :class="{ unread: !d.is_read }">
-      <div class="item-actions">
-        <n-button text @click="toggleFav(d)">
-          <Icon
-            :icon="d.fav_id ? 'fluent-emoji:glowing-star' : 'fluent-emoji:star'"
-            width="20"
-          />
-        </n-button>
-      </div>
-      <p class="item-title">
-        <a :href="d.url" target="_blank" rel="noopener" @click="markRead(d)">{{ d.title }}</a>
-      </p>
-      <div class="item-meta">
-        <n-tag size="tiny" type="success" :bordered="false">{{ sourceName(d.source_key) }}</n-tag>
-        <span v-if="d.transferor">转让方：{{ d.transferor }}</span>
-        <span v-if="d.amount_wan">金额：{{ d.amount_wan }} 万元</span>
-        <span v-if="d.region">{{ d.region }}</span>
-        <span v-if="d.end_time">截止：{{ d.end_time }}</span>
-        <n-tag v-if="d.status" size="tiny" :bordered="false">{{ d.status }}</n-tag>
-      </div>
-    </div>
+    <n-data-table
+      :columns="columns"
+      :data="list"
+      :loading="loading"
+      :bordered="false"
+      size="small"
+      :row-class-name="rowClass"
+    />
 
-    <n-empty v-if="!loading && !list.length" description="暂无数据" style="padding: 48px 0" />
-
-    <div style="display: flex; justify-content: center; margin-top: 16px">
+    <div style="display: flex; justify-content: flex-end; margin-top: 10px">
       <n-pagination
         v-model:page="page"
         :page-size="pageSize"
         :item-count="total"
+        size="small"
         @update:page="load"
       />
     </div>
@@ -76,10 +65,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { Icon } from '@iconify/vue'
+import { ref, onMounted, h } from 'vue'
+import { NButton, NTag } from 'naive-ui'
 import { useMessage } from 'naive-ui'
 import { api } from '../api'
+import { sourceLabel } from '../sources'
+import { ReceiptOutline } from '../icons'
 
 const message = useMessage()
 const list = ref([])
@@ -93,14 +84,79 @@ const region = ref('')
 const status = ref(null)
 const keyword = ref('')
 
-const sources = ref([])
 const sourceOptions = ref([])
 const statusOptions = [
   { label: '在售', value: '在售' },
   { label: '已结束', value: '已结束' },
 ]
 
-const sourceName = (key) => sources.value.find((s) => s.source_key === key)?.name || key
+function rowClass(row) {
+  return row.is_read ? '' : 'row-unread'
+}
+
+function price(v) {
+  return v ? v.toLocaleString('zh-CN', { maximumFractionDigits: 1 }) : '—'
+}
+
+const columns = [
+  {
+    title: '',
+    key: 'fav',
+    width: 40,
+    render: (row) =>
+      h(
+        NButton,
+        { text: true, onClick: () => toggleFav(row) },
+        { default: () => h('span', { style: 'font-size:14px' }, row.fav_id ? '★' : '☆') }
+      ),
+  },
+  {
+    title: '标的',
+    key: 'title',
+    minWidth: 320,
+    render: (row) =>
+      h('div', null, [
+        h(
+          'a',
+          {
+            href: row.url,
+            target: '_blank',
+            rel: 'noopener',
+            style: 'color:#1F2937;text-decoration:none',
+            onClick: () => markRead(row),
+          },
+          row.title
+        ),
+        h('div', { style: 'margin-top:2px' }, [
+          h('span', { class: 'source-tag' }, sourceLabel(row.source_key)),
+        ]),
+      ]),
+  },
+  {
+    title: '转让方',
+    key: 'transferor',
+    width: 150,
+    render: (row) => row.transferor || '—',
+  },
+  {
+    title: '金额(万)',
+    key: 'amount_wan',
+    width: 100,
+    align: 'right',
+    render: (row) => price(row.amount_wan),
+  },
+  { title: '地区', key: 'region', width: 90, render: (row) => row.region || '—' },
+  { title: '截止', key: 'end_time', width: 130, render: (row) => row.end_time || '—' },
+  {
+    title: '状态',
+    key: 'status',
+    width: 90,
+    render: (row) =>
+      row.status
+        ? h(NTag, { size: 'small', bordered: false, type: 'info' }, { default: () => row.status })
+        : '—',
+  },
+]
 
 async function load() {
   loading.value = true
@@ -127,21 +183,21 @@ function reload() {
   load()
 }
 
-async function markRead(d) {
-  if (!d.is_read) {
-    d.is_read = 1
-    api.debtMarkRead([d.id]).catch(() => {})
+async function markRead(row) {
+  if (!row.is_read) {
+    row.is_read = 1
+    api.debtMarkRead([row.id]).catch(() => {})
   }
 }
 
-async function toggleFav(d) {
+async function toggleFav(row) {
   try {
-    if (d.fav_id) {
-      await api.favoriteRemove(d.fav_id)
-      d.fav_id = 0
+    if (row.fav_id) {
+      await api.favoriteRemove(row.fav_id)
+      row.fav_id = 0
       message.success('已取消收藏')
     } else {
-      await api.favoriteAdd('debt', d.id, '')
+      await api.favoriteAdd('debt', row.id, '')
       message.success('已收藏')
       load()
     }
@@ -152,14 +208,19 @@ async function toggleFav(d) {
 
 onMounted(async () => {
   try {
-    sources.value = (await api.sourceList()).filter((s) => s.category === 'debt')
-    sourceOptions.value = sources.value.map((s) => ({
-      label: s.name,
-      value: s.source_key,
-    }))
+    const sources = await api.sourceList()
+    sourceOptions.value = sources
+      .filter((s) => s.category === 'debt')
+      .map((s) => ({ label: s.name, value: s.source_key }))
   } catch {
     /* 数据源列表加载失败不阻塞 */
   }
   load()
 })
 </script>
+
+<style>
+.row-unread td {
+  font-weight: 600;
+}
+</style>

@@ -1,6 +1,9 @@
 <template>
   <div>
-    <h2 class="page-title"><Icon icon="fluent-emoji:gear" width="26" /> 个人设置</h2>
+    <h2 class="page-title">
+      <n-icon :component="SettingsOutline" :size="18" />
+      个人设置
+    </h2>
 
     <div class="panel">
       <div class="panel-head"><h3>修改密码</h3></div>
@@ -32,9 +35,9 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { Icon } from '@iconify/vue'
 import { useMessage } from 'naive-ui'
 import { useAuthStore } from '../stores/auth'
+import { SettingsOutline } from '../icons'
 
 const router = useRouter()
 const message = useMessage()
@@ -82,18 +85,18 @@ function logout() {
 <style scoped>
 .panel {
   background: #fff;
-  border-radius: 14px;
-  padding: 18px 22px;
-  margin-bottom: 16px;
-  box-shadow: 0 1px 3px rgba(19, 78, 74, 0.08);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
 }
 
 .panel-head {
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 
 .panel-head h3 {
   margin: 0;
-  font-size: 15px;
+  font-size: 13.5px;
 }
 </style>

@@ -1,7 +1,7 @@
 <template>
   <div class="login-wrap">
     <div class="login-card">
-      <Icon icon="fluent-emoji:house-with-garden" width="56" />
+      <n-icon :component="CubeOutline" :size="34" color="#2563eb" />
       <h1>资产工作台</h1>
       <n-input v-model:value="username" placeholder="用户名" size="large" @keyup.enter="doLogin" />
       <n-input
@@ -22,9 +22,9 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { Icon } from '@iconify/vue'
 import { useMessage } from 'naive-ui'
 import { useAuthStore } from '../stores/auth'
+import { CubeOutline } from '../icons'
 
 const router = useRouter()
 const message = useMessage()
@@ -57,22 +57,24 @@ async function doLogin() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #14b8a6 0%, #38bdf8 100%);
+  background: #f5f6f8;
 }
 
 .login-card {
   background: #fff;
-  border-radius: 16px;
-  padding: 40px 36px;
-  width: 360px;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  padding: 32px 28px;
+  width: 340px;
   text-align: center;
-  box-shadow: 0 10px 40px rgba(19, 78, 74, 0.15);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 
 .login-card h1 {
-  font-size: 20px;
-  margin: 12px 0 24px;
-  color: #134e4a;
+  font-size: 17px;
+  margin: 10px 0 20px;
+  color: #1f2937;
+  font-weight: 600;
 }
 
 .login-card .n-input {

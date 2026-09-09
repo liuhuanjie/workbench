@@ -1,6 +1,9 @@
 <template>
   <div>
-    <h2 class="page-title"><Icon icon="fluent-emoji:newspaper" width="26" /> 业务新闻阅读</h2>
+    <h2 class="page-title">
+      <n-icon :component="NewspaperOutline" :size="18" />
+      业务新闻阅读
+    </h2>
 
     <div class="filter-bar">
       <n-radio-group v-model:value="category" size="small" @update:value="reload">
@@ -25,10 +28,7 @@
     <div v-for="n in list" :key="n.id" class="item-card" :class="{ unread: !n.is_read }">
       <div class="item-actions">
         <n-button text @click="toggleFav(n)">
-          <Icon
-            :icon="n.fav_id ? 'fluent-emoji:glowing-star' : 'fluent-emoji:star'"
-            width="20"
-          />
+          <span style="font-size: 14px">{{ n.fav_id ? '★' : '☆' }}</span>
         </n-button>
       </div>
       <p class="item-title">
@@ -36,20 +36,22 @@
       </p>
       <div class="item-meta">
         <n-tag size="tiny" type="info" :bordered="false">{{ catName(n.category) }}</n-tag>
+        <span class="source-tag">{{ sourceLabel(n.source_key) }}</span>
         <span v-if="n.org_name">{{ n.org_name }}</span>
         <span v-if="n.published_at">{{ n.published_at }}</span>
-        <span v-if="!n.is_read" style="color: #14b8a6">未读</span>
+        <span v-if="!n.is_read" style="color: var(--primary)">未读</span>
       </div>
       <p v-if="n.summary" class="item-summary">{{ n.summary }}</p>
     </div>
 
     <n-empty v-if="!loading && !list.length" description="暂无数据" style="padding: 48px 0" />
 
-    <div style="display: flex; justify-content: center; margin-top: 16px">
+    <div style="display: flex; justify-content: flex-end; margin-top: 10px">
       <n-pagination
         v-model:page="page"
         :page-size="pageSize"
         :item-count="total"
+        size="small"
         @update:page="load"
       />
     </div>
@@ -58,9 +60,10 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { Icon } from '@iconify/vue'
 import { useMessage } from 'naive-ui'
 import { api } from '../api'
+import { sourceLabel } from '../sources'
+import { NewspaperOutline } from '../icons'
 
 const message = useMessage()
 const list = ref([])
