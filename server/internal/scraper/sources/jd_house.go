@@ -24,8 +24,11 @@ import (
 const (
 	jdNoticeAPIFmt = "https://paimai.jd.com/json/noticeJson?tab=0&publishSource=7&page=%d"
 	jdNoticeFmt    = "https://paimai.jd.com/notice/%d"
-	jdMaxPages     = 15 // 单次最多翻 15 页（300 条），控制请求量
+	jdMaxPages     = 25 // 单次最多翻 25 页（500 条），控制请求量
 )
+
+// jdCities 关注城市（京东沪京标的占比低，故翻页略多于其他源）
+var jdCities = []string{"上海", "北京"}
 
 type jdNotice struct {
 	ID          int64  `json:"id"`
@@ -44,11 +47,10 @@ func (jdHouseScraper) Category() string { return "house" }
 
 // jdTargetCity 返回标题命中的目标城市（非沪京返回空）
 func jdTargetCity(title string) string {
-	switch {
-	case strings.Contains(title, "上海"):
-		return "上海"
-	case strings.Contains(title, "北京"):
-		return "北京"
+	for _, c := range jdCities {
+		if cityMatch(title, c) {
+			return c
+		}
 	}
 	return ""
 }

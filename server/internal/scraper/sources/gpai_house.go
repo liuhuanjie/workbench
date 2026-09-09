@@ -15,6 +15,7 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
 
@@ -90,16 +91,30 @@ func parseGPaiList(body []byte, city string) ([]store.Item, error) {
 		if id == "" {
 			return
 		}
-		if !isResidential(title) {
+		if !isResidential(title) || !cityMatch(title, city) {
+			return
+		}
+		status := strings.TrimSpace(sel.Find(".badge-icon, .status-badge").First().Text())
+		// 已成交/流拍/撤回的历史标的无跟踪价值，只保留当前可参与的
+		if isClosedStatus(status) {
+			return
+		}
+		auctionDate := ""
+		if m := gpaiTimeRe.FindStringSubmatch(sel.Text()); m != nil {
+			auctionDate = normalizeDate(fmt.Sprintf("%s-%s-%s %s:%s",
+				m[1], m[2], m[3], m[4], m[5]))
+		}
+		if isPast(auctionDate) {
 			return
 		}
 		item := store.Item{
-			SourceKey: "gpai_house",
-			URL:       gpaiItemBase + id,
-			Title:     title,
-			City:      city,
-			District:  gpaiDistrict(title),
-			Status:    strings.TrimSpace(sel.Find(".badge-icon, .status-badge").First().Text()),
+			SourceKey:   "gpai_house",
+			URL:         gpaiItemBase + id,
+			Title:       title,
+			City:        city,
+			District:    gpaiDistrict(title),
+			Status:      status,
+			AuctionDate: auctionDate,
 		}
 		// 起拍价：首个 price-red（单位元）→ 万元
 		if v := parseAmount(sel.Find("b.price-red").First().Text()); v > 0 {
@@ -120,13 +135,31 @@ func parseGPaiList(body []byte, city string) ([]store.Item, error) {
 			}
 			item.EvalPriceWan = round2(v)
 		})
-		if m := gpaiTimeRe.FindStringSubmatch(sel.Text()); m != nil {
-			item.AuctionDate = normalizeDate(fmt.Sprintf("%s-%s-%s %s:%s",
-				m[1], m[2], m[3], m[4], m[5]))
-		}
 		items = append(items, item)
 	})
 	return items, nil
+}
+
+// isClosedStatus 判断是否为已结束状态（成交/流拍/撤回等），这类历史标的无跟踪价值
+func isClosedStatus(status string) bool {
+	for _, kw := range []string{"成交", "流拍", "撤回", "撤拍", "中止", "暂缓", "已结束"} {
+		if strings.Contains(status, kw) {
+			return true
+		}
+	}
+	return false
+}
+
+// isPast 判断拍卖时间是否已过（时间为空时不过滤）
+func isPast(date string) bool {
+	if date == "" {
+		return false
+	}
+	t, err := time.Parse("2006-01-02 15:04", date)
+	if err != nil {
+		return false
+	}
+	return t.Before(time.Now())
 }
 
 // gpaiItemID 从详情页链接提取标的内码

@@ -35,6 +35,38 @@ func classifyNews(title string) (category, org string) {
 	return "industry", ""
 }
 
+// roadSuffixes 城市名后紧跟这些字时属于路名（如"北京南路""上海路"），不能判定为该城市
+var roadSuffixes = []string{"路", "街", "巷", "弄", "大道", "东路", "西路", "南路", "北路", "中路", "大道口"}
+
+// cityMatch 判断标题是否真实命中目标城市
+// 例："乌鲁木齐市…北京南路" 对"北京"应判否；"上海市静安区北京西路" 对"上海"应判是
+func cityMatch(title, city string) bool {
+	if strings.Contains(title, city+"市") {
+		return true
+	}
+	for i := 0; ; {
+		j := strings.Index(title[i:], city)
+		if j < 0 {
+			return false
+		}
+		rest := title[i+j+len(city):]
+		isRoad := false
+		for _, s := range roadSuffixes {
+			if strings.HasPrefix(rest, s) {
+				isRoad = true
+				break
+			}
+		}
+		if !isRoad {
+			return true
+		}
+		i += j + len(city)
+		if i >= len(title) {
+			return false
+		}
+	}
+}
+
 var timeLayouts = []string{
 	time.RFC1123,
 	time.RFC1123Z,
