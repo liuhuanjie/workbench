@@ -271,15 +271,38 @@ docker compose up -d        # 服务 + 数据完整恢复
 
 校准方法：浏览器 F12 观察目标页面请求 → 填写配置 → 推送代码由 CI 构建 → 服务器 `docker compose pull && up -d` → 数据管理页点"立即抓取"验证。
 
-### 阿里司法拍卖（sf.taobao.com）为什么没数据
+### 阿里司法拍卖：已改用官方 API
 
-实测结论（2026-09-08，阿里云 ECS）：淘宝对**云主机 IP 段直接封禁**，所有列表路径返回
-`deny_pc.html?...|cloud_ip_bl`，换 UA、带 Cookie 均无效；H5 网关可达但需正确的 mtop 接口名与签名。
+直接抓取 `sf.taobao.com` 不可行（实测 2026-09-08，阿里云 ECS）：淘宝对**云主机 IP 段直接封禁**，
+所有列表路径返回 `deny_pc.html?...|cloud_ip_bl`，换 UA、带 Cookie 均无效。
 
-沪京住宅法拍因此改由**公拍网**承担（上海地区标的最全）。若仍需阿里数据，二选一：
+因此本项目的阿里源改为调用**淘宝开放平台官方 API**（免费、不需要用户授权，仅需 AppKey 签名）：
 
-1. 申请[淘宝开放平台](https://open.taobao.com) AppKey，改走官方 API `taobao.auction.gov.auctions.get`
-2. 使用住宅代理出口 IP，绕过云主机封禁
+| API | 用途 |
+|-----|------|
+| `taobao.auction.gov.auctions.get` | 分页获取标的物（支持 `item_city` 按标的物城市筛选） |
+| `taobao.auction.gov.categories.get` | 类目 |
+| `taobao.auction.gov.get.auction.status` / `get.latestbid` | 拍品状态 / 最新出价 |
+| `taobao.auction.gov.data.realtime.get` 等 | 统计数据 |
+
+**启用步骤**：
+
+1. 打开 [open.taobao.com](https://open.taobao.com) 用淘宝账号登录 → 实名认证 → 控制台创建应用
+2. 拿到 **AppKey / AppSecret**，确认应用有上述司法拍卖 API 的调用权限（若提示需申请，按页面提交用途说明）
+3. 在服务器 `.env` 增加两行并重启：
+
+```bash
+TAOBAO_APP_KEY=你的AppKey
+TAOBAO_APP_SECRET=你的AppSecret
+docker compose up -d
+```
+
+4. 「数据管理」页会出现 `ali_house`（阿里法拍-住宅(官方API)）源，点「立即抓取」即可
+
+未配置密钥时该源**不会注册**（页面不显示、不产生失败记录），配置后立即生效。
+
+> 京东侧：开放平台（open.jd.com）仅有电商类 API，无司法拍卖数据接口，因此京东沿用其公开的公告 JSON 接口。
+> 法院官方站（rmfysszc.gov.cn）无开放 API 且封禁机房 IP，但其官网本身链接了公拍网，故沪京住宅数据以公拍网 + 阿里官方 API 为主。
 
 ## 反爬与抓取频率
 
