@@ -1,4 +1,20 @@
 services:
+  # 443 SNI 透传网关：本地 hosts 把 github.com 等指到本机 443，
+  # 由该网关按 SNI 转发到真实站点（TLS 端到端，无需证书）。
+  # 复用 web 镜像（其底层即 nginx:1.27-alpine，含 stream 模块），
+  # 避免服务器直连 Docker Hub 拉基础镜像失败的问题
+  gw:
+    image: ${WEB_IMAGE:-workbench-web:latest}
+    restart: unless-stopped
+    ports:
+      - "443:443"
+    volumes:
+      - ./nginx/gateway.conf:/etc/nginx/nginx.conf:ro
+    logging:
+      options:
+        max-size: "5m"
+        max-file: "2"
+
   web:
     build:
       context: .
